@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang = "uk">
+    <head>
+        <meta charset = "utf-8" />
+        <meta name = "author" content = "Kalmykov Artem" />
+        <meta name = "viewport" content = "width = device-width" />
+        <title>Графи</title>
+        <style>
+h1 {
+    text-align: center;
+}
+
+#content {
+    width: 100%;
+    height: 40vh;
+    overflow-y: auto;
+}
+#graph {
+    width: min(50vh, 100vw);
+    height: min(50vh, 100vw);
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-top: 3vh;
+}
+
+.vertex.focused {
+    stroke: darkorange;
+}
+.edge.focused {
+    fill: darkorange;
+}
+
+footer {
+    text-align: center;
+}
+        </style>
+    </head>
+    <body>
+        <div id = "content">
+            <h1>Графи</h1>
+            <p>Ви можете побудувати граф самостійно або ввести дані для генерування графа.</p>
+            <p>Вершину можна переміщувати, використовуючи клавіші &rarr;, &larr;, &uarr; та &darr;.</p>
+            <p>Щоб додати ребро, натисніть на відповідну кнопку та позначте початкову та кінцеву вершини. Візьміть до уваги, що поки що підтримуються тільки орієнтовані ребра, але можна додати два ребра, які відрізняються тільки напрямком.</p>
+            <button type = "button" onclick = "reset_graph();">Очистити граф</button>
+            <button type = "button" onclick = "add_vertex();">Додати вершину</button>
+            <button type = "button" onclick = "add_edge();">Додати ребро</button>
+        </div>
+        <svg id = "graph" viewport = "0 0 400 400">
+            <defs>
+                <marker id = "head" orient = "auto" markerWidth = "5" markerHeight = "5" refX = "0" refY = "2.5">
+                    <path d = "M 0 0 L 5 2.5 L 0 5" fill = "black" />
+                </marker>
+
+                <g class = "vertex" id = "vertex_template" stroke = "black">
+                    <circle r = "10" stroke-width = "1" fill = "white" />
+                    <text text-anchor = "middle" font-size = "15"></text>
+                </g>
+
+                <polyline class = "edge" id = "edge_template" stroke-width = "1" stroke = "black" marker-mid = "url(#head)" />
+            </defs>
+
+            <g id = "edge_g"></g>
+            <g id = "vertex_g"></g>
+        </svg>
+        <footer>&copy; Калмиков Артем</footer>
+
+        <script>
+var matrix = [], vertices = 0, edges = [], coords = [];
+var selected = [], select_mode = "plain";
+var edge_g, vertex_g, vertex_template, edge_template;
+
+onload = function () {
+    edge_g = document.getElementById("edge_g");
+    vertex_g = document.getElementById("vertex_g");
+    vertex_template = document.getElementById("vertex_template");
+    edge_template = document.getElementById("edge_template");
+};
+
+function reset_graph () {
+    while (edge_g.firstChild)
+        edge_g.removeChild(edge_g.lastChild);
+    while (vertex_g.firstChild)
+        vertex_g.removeChild(vertex_g.lastChild);
+    selected = [];
+    matrix = [];
+    vertices = 0;
+    edges = [];
+    coords = [];
+}
+
+function add_vertex () {
+    for (let i = 0; i < vertices; i++)
+        matrix[i].push(0);
+    matrix.push(Array(vertices + 1));
+    matrix[vertices].fill(0);
+    edges.push(Array());
+    vertices++;
+    let vertex = vertex_template.cloneNode(true);
+    let x = Math.floor(Math.random() * 390) + 5;
+    let y = Math.floor(Math.random() * 390) + 5;
+    coords.push([x, y]);
+    vertex.querySelector("circle").setAttribute("cx", String(x));
+    vertex.querySelector("circle").setAttribute("cy", String(y));
+    vertex.querySelector("text").setAttribute("x", String(x));
+    vertex.querySelector("text").setAttribute("y", String(y + 5));
+    vertex.querySelector("text").textContent = String(vertices);
+    vertex.id = "vertex_" + String(vertices - 1);
+    vertex.onclick = vertex_click.bind(this, vertices - 1);
+    vertex_g.appendChild(vertex);
+}
+
+function vertex_click (n) {
+    for (let i of vertex_g.querySelectorAll(".focused"))
+        i.classList.remove("focused");
+    console.log("Selected #vertex_" + String(n) + " in mode '" + select_mode + "'.");
+    vertex_g.querySelector("#vertex_" + String(n)).classList.add("focused");
+    if (select_mode == "plain") {
+        selected = [n];
+    }
+    else if (select_mode == "add edge") {
+        selected.push(n);
+        if (selected.length == 2) {
+            if (matrix[selected[0]][selected[1]] || selected[0] == selected[1]) return;
+            let edge = edge_template.cloneNode(true);
+            edge.setAttribute("points", String(coords[selected[0]][0]) + "," + String(coords[selected[0]][1]) + " " + String((coords[selected[0]][0] + coords[selected[1]][0]) / 2) + "," + String((coords[selected[0]][1] + coords[selected[1]][1]) / 2) + " " + String(coords[selected[1]][0]) + "," + String(coords[selected[1]][1]));
+            edge.id = "edge_" + String(selected[0]) + "_" + String(selected[1]);
+            edge_g.appendChild(edge);
+            matrix[selected[0]][selected[1]] = 1;
+        }
+    }
+}
+
+document.onkeydown = function (e) {
+    if (!selected.length) return;
+    let focus = selected[selected.length - 1];
+    let dx = 0, dy = 0;
+    e = e || window.event;
+    if (e.keyCode == 40) {
+        dy = 1;
+    }
+    else if (e.keyCode == 38) {
+        dy = -1;
+    }
+    else if (e.keyCode == 39) {
+        dx = 1;
+    }
+    else if (e.keyCode == 37) {
+        dx = -1;
+    }
+    else return;
+    coords[focus][0] += dx;
+    coords[focus][1] += dy;
+    
+    vertex_g.querySelector("#vertex_" + String(focus)).querySelector("circle").setAttribute("cx", String(coords[focus][0]));
+    vertex_g.querySelector("#vertex_" + String(focus)).querySelector("circle").setAttribute("cy", String(coords[focus][1]));
+    vertex_g.querySelector("#vertex_" + String(focus)).querySelector("text").setAttribute("x", String(coords[focus][0]));
+    vertex_g.querySelector("#vertex_" + String(focus)).querySelector("text").setAttribute("y", String(coords[focus][1] + 5));
+    for (let i = 0; i < vertices; i++) {
+        if (matrix[focus][i]) {
+            edge_g.querySelector("#edge_" + String(focus) + "_" + String(i)).setAttribute("points", String(coords[focus][0]) + "," + String(coords[focus][1]) + " " + String((coords[focus][0] + coords[i][0]) / 2) + "," + String((coords[focus][1] + coords[i][1]) / 2) + " " + String(coords[i][0]) + "," + String(coords[i][1]));
+        }
+        if (matrix[i][focus]) {
+            edge_g.querySelector("#edge_" + String(i) + "_" + String(focus)).setAttribute("points", String(coords[i][0]) + "," + String(coords[i][1]) + " " + String((coords[i][0] + coords[focus][0]) / 2) + "," + String((coords[i][1] + coords[focus][1]) / 2) + " " + String(coords[focus][0]) + "," + String(coords[focus][1]));
+        }
+    }
+}
+
+function add_edge () {
+    selected = [];
+    for (let i of vertex_g.querySelectorAll(".focused"))
+        i.classList.remove("focused");
+    select_mode = "add edge";
+}
+        </script>
+    </body>
+</html>
