@@ -213,17 +213,39 @@ function generate_graph () {
 }
 
 function check_connectedness () {
-    /*
-    m = []
-while m != m2:
-    m = [i.copy() for i in m2]
-    m2 = [[any(m[x][i] * m[i][y] for i in range(n)) for y in range(n)] for x in range(n)]
-    */
-   let m = [], m2 = structuredClone(matrix);
-   while (m != m2) {
-    m = structuredClone(m2);
-    
-   }
+    let m = [], m2 = structuredClone(matrix);
+    while (!equal_2d(m, m2)) {
+        m = structuredClone(m2);
+        m2 = []
+        for (let x = 0; x < vertices; x++) {
+            m2.push([]);
+            for (let y = 0; y < vertices; y++) {
+                m2[x].push(0);
+                for (let i = 0; i < n; i++) {
+                    m2[x][y] = m2[x][y] || m[x][i] * m[i][y];
+                }
+            }
+        }
+        alert(m2);
+    }
+    if (matrix.length)
+        alert("Граф не містить ребер.")
+    else
+        alert("Граф " + ("не".repeat(m2.some(i => i.some(j => (j == 0))))) + "зв'язний.");
+}
+
+function equal_2d (a, b) {
+    if (a.length != b.length)
+        return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i].length != b[i].length)
+            return false;
+        for (let j = 0; j < a[i].length; j++) {
+            if (a[i][j] != b[i][j])
+                return false;
+        }
+    }
+    return true;
 }
         </script>
     </body>
