@@ -44,6 +44,12 @@ footer {
             <button type = "button" onclick = "reset_graph();">Очистити граф</button>
             <button type = "button" onclick = "add_vertex();">Додати вершину</button>
             <button type = "button" onclick = "add_edge();">Додати ребро</button>
+            <br />
+            <button type = "button" onclick = "generate_graph();">Згенерувати граф</button>
+            <input type = "text" placeholder = "Кількість вершин" id = "gen_vertices" />
+            <input type = "text" placeholder = "Кількість ребер" id = "gen_edges" />
+            <br />
+            <button type = "button" onclick = "check_connectedness();">Перевірити на зв'язність</button>
         </div>
         <svg id = "graph" viewport = "0 0 400 400">
             <defs>
@@ -67,13 +73,15 @@ footer {
         <script>
 var matrix = [], vertices = 0, edges = [], coords = [];
 var selected = [], select_mode = "plain";
-var edge_g, vertex_g, vertex_template, edge_template;
+var edge_g, vertex_g, vertex_template, edge_template, gen_vertices, gen_edges;
 
 onload = function () {
     edge_g = document.getElementById("edge_g");
     vertex_g = document.getElementById("vertex_g");
     vertex_template = document.getElementById("vertex_template");
     edge_template = document.getElementById("edge_template");
+    gen_vertices = document.getElementById("gen_vertices");
+    gen_edges = document.getElementById("gen_edges");
 };
 
 function reset_graph () {
@@ -131,7 +139,8 @@ function vertex_click (n) {
 }
 
 document.onkeydown = function (e) {
-    if (!selected.length) return;
+    if (!selected.length)
+        return;
     let focus = selected[selected.length - 1];
     let dx = 0, dy = 0;
     e = e || window.event;
@@ -147,7 +156,8 @@ document.onkeydown = function (e) {
     else if (e.keyCode == 37) {
         dx = -1;
     }
-    else return;
+    else
+        return;
     coords[focus][0] += dx;
     coords[focus][1] += dy;
     
@@ -170,6 +180,50 @@ function add_edge () {
     for (let i of vertex_g.querySelectorAll(".focused"))
         i.classList.remove("focused");
     select_mode = "add edge";
+}
+
+function generate_graph () {
+    let vertix_count = Number(gen_vertices.value);
+    let edge_count = Number(gen_edges.value);
+    for (let i = 0; i < vertix_count; i++) {
+        add_vertex();
+    }
+    let all_edges = [];
+    for (let i = 0; i < vertix_count; i++) {
+        for (let j = 0; j < vertix_count; j++) {
+            if (i == j)
+                continue;
+            all_edges.push([i, j]);
+        }
+    }
+    for (let i = all_edges.length; i > 0;) {
+        let j = Math.floor(Math.random() * i);
+        i--;
+        let temp = all_edges[i];
+        all_edges[i] = all_edges[j];
+        all_edges[j] = temp;
+    }
+    for (let i = 0; i < edge_count; i++) {
+        add_edge();
+        vertex_click(all_edges[i][0]);
+        vertex_click(all_edges[i][1]);
+    }
+    for (let i of vertex_g.querySelectorAll(".focused"))
+        i.classList.remove("focused");
+}
+
+function check_connectedness () {
+    /*
+    m = []
+while m != m2:
+    m = [i.copy() for i in m2]
+    m2 = [[any(m[x][i] * m[i][y] for i in range(n)) for y in range(n)] for x in range(n)]
+    */
+   let m = [], m2 = structuredClone(matrix);
+   while (m != m2) {
+    m = structuredClone(m2);
+    
+   }
 }
         </script>
     </body>
