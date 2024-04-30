@@ -421,14 +421,27 @@ function Dijkstra () {
                 v = min[x];
             }
         }
+        if (j == -1) {
+            break;
+        }
         for (let k = 0; k < vertices; k++) {
             if (!checked[k] && min[j] + m[j][k] < min[k]) {
                 min[k] = min[j] + m[j][k];
                 parent[k] = j;
             }
         }
+        checked[j] = true;
     }
-    
+    if (checked[selected[1]]) {
+        let path = [selected[1]], cur = selected[1];
+        while (cur != selected[0]) {
+            cur = parent[cur];
+            path.push(cur);
+        }
+        show_message("#33cc33", "Шлях має довжину " + String(path.length) + ".");
+    }
+    else
+        show_message("#cc3333", "Шляху немає.");
 }
         </script>
     </body>
