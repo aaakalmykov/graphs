@@ -28,6 +28,7 @@ h1 {
 }
 .edge.focused {
     fill: darkorange;
+    stroke: darkorange;
 }
 
 #graph_buttons {
@@ -51,7 +52,7 @@ footer {
             <h1>Графи</h1>
             <p>Ви можете побудувати граф самостійно або ввести дані для генерування графа.</p>
             <p>Вершину можна переміщувати, використовуючи <i>клавіші</i> &rarr;, &larr;, &uarr; та &darr; на клавіатурі.</p>
-            <p>Щоб додати ребро, натисніть на відповідну кнопку та позначте початкову та кінцеву вершини. Візьміть до уваги, що поки що підтримуються тільки орієнтовані ребра, але можна додати два ребра, які відрізняються тільки напрямком.</p>
+            <p><!--Щоб додати ребро, натисніть на відповідну кнопку та позначте початкову та кінцеву вершини. -->Візьміть до уваги, що поки що підтримуються тільки орієнтовані ребра, але можна додати два ребра, які відрізняються тільки напрямком.</p>
             <p>Граф можна візуально зменшувати та збільшувати за допомогою <i>кнопок</i> - та + відповідно. Рухатись по ньому можна за допомогою <i>кнопок</i> &lt; (вліво), ^ (вгору), v (вниз) та &gt; (вправо).</p>
             <button type = "button" onclick = "reset_graph();">Очистити граф</button>
             <button type = "button" onclick = "add_vertex();">Додати вершину</button>
@@ -64,7 +65,7 @@ footer {
             <button type = "button" onclick = "check_connectivity(false, false);">Перевірити на сильну зв'язність за матрицею суміжності</button>
             <button type = "button" onclick = "check_connectivity(true, false);">Перевірити на слабку зв'язність за матрицею суміжності</button>
             <button type = "button" onclick = "check_connectivity(true, true);">Знайти кількість компонент слабкої зв'язності за матрицею суміжності</button>
-            <button type = "button" onclick = "Dijkstra();" disabled>Алгоритм Дейкстри (на наявних вершинах)</button>
+            <button type = "button" onclick = "Dijkstra();">Алгоритм Дейкстри (на наявних вершинах)</button>
         </div>
         <svg id = "graph" viewBox = "0 0 400 400">
             <defs>
@@ -231,7 +232,7 @@ function add_edge () {
     edge.id = "edge_" + String(selected[0]) + "_" + String(selected[1]);
     edge_g.appendChild(edge);
     matrix[selected[0]][selected[1]] = 1;
-    selected = [];
+    select_mode = "plain";
     show_message("#33сс33", "Ребро додано.");
 }
 
@@ -325,7 +326,7 @@ function check_connectivity (weak, output_comps) {
             actions.push(["c"]);
         }
         show_message("#33cc33", "Граф містить " + String(comps) + " компонент" + (comps % 10 == 1 && comps % 100 != 11 ? "у" : comps % 10 >= 2 && comps % 10 <= 4 ? "и" : "") + " слабкої зв'язності.");
-        action_interval = setInterval(act, 2000);
+        actions_interval = setInterval(act, 2000);
     }
 }
 
@@ -386,7 +387,6 @@ function act () {
         action_num++;
         if (action_num >= actions.length) {
             clearInterval(actions_interval);
-            actions_interval = null;
             return;
         }
     }
@@ -413,6 +413,7 @@ function Dijkstra () {
     checked.fill(false);
     min.fill(Infinity);
     parent.fill(-1);
+    min[selected[0]] = 0;
     for (let i = 0; i < vertices; i++) {
         let j = -1, v = Infinity;
         for (let x = 0; x < vertices; x++) {
@@ -445,18 +446,22 @@ function Dijkstra () {
         }
         actions = [];
         action_num = 0;
-        actions.push("s", "vertex_" + String(path[path.length  - 1]));
+        actions.push(["s", "vertex_" + String(path[path.length  - 1])]);
         actions.push("w");
         for (let i = path.length - 2; i >= 0; i--) {
-            actions.push("s", "edge_" + String(path[i + 1]) + "_" + String(path[i]));
-            actions.push("s", "vertex_" + String(path[i]));
+            actions.push(["s", "edge_" + String(path[i + 1]) + "_" + String(path[i])]);
+            actions.push(["s", "vertex_" + String(path[i])]);
             actions.push("w");
         }
         actions.push("c");
-        action_interval = setInterval(act, 2000);
+        selected = [];
+        for (let i of graph.querySelectorAll(".focused"))
+            i.classList.remove("focused");
+        actions_interval = setInterval(act, 2000);
     }
     else
         show_message("#cc3333", "Шляху немає.");
+    select_mode = "plain";
 }
         </script>
     </body>
