@@ -439,9 +439,21 @@ function Dijkstra () {
             path.push(cur);
         }
         show_message("#33cc33", "Шлях має довжину " + String(path.length) + ".");
-        for (let i = path.length - 2; i >= 0; i--) {
-            actions.push("s");
+        if (actions_interval) {
+            clearInterval(actions_interval);
+            actions_interval = null;
         }
+        actions = [];
+        action_num = 0;
+        actions.push("s", "vertex_" + String(path[path.length  - 1]));
+        actions.push("w");
+        for (let i = path.length - 2; i >= 0; i--) {
+            actions.push("s", "edge_" + String(path[i + 1]) + "_" + String(path[i]));
+            actions.push("s", "vertex_" + String(path[i]));
+            actions.push("w");
+        }
+        actions.push("c");
+        action_interval = setInterval(act, 2000);
     }
     else
         show_message("#cc3333", "Шляху немає.");
