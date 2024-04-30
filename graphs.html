@@ -439,6 +439,9 @@ function Dijkstra () {
             path.push(cur);
         }
         show_message("#33cc33", "Шлях має довжину " + String(path.length) + ".");
+        for (let i = path.length - 2; i >= 0; i--) {
+            actions.push("s");
+        }
     }
     else
         show_message("#cc3333", "Шляху немає.");
